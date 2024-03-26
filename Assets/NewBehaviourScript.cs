@@ -4,6 +4,7 @@ using Unity.Burst.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 
 public class NewBehaviourScript : MonoBehaviour
 {
@@ -29,7 +30,7 @@ public class NewBehaviourScript : MonoBehaviour
             Vector2 tapPosition = Camera.main.ScreenToWorldPoint(touch.position);
             transform.position = tapPosition;
 
-            if (touch.phase == TouchPhase.Began)
+            if (touch.phase == UnityEngine.TouchPhase.Began)
             {
                 INT = touch.position;
                 RaycastHit2D hit = Physics2D.Raycast(tapPosition, Vector2.zero);
@@ -51,13 +52,13 @@ public class NewBehaviourScript : MonoBehaviour
                 }
             }
 
-            if(touch.phase == TouchPhase.Moved)
+            if(touch.phase == UnityEngine.TouchPhase.Moved)
             {
                 if (cositos != null)
                 {
                     cositos.transform.position = tapPosition;
                 }
-            }else if (touch.phase == TouchPhase.Ended)
+            }else if (touch.phase == UnityEngine.TouchPhase.Ended)
             {
                 cositos = null;
                 ENDT = touch.position;
