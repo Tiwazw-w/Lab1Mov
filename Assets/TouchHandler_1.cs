@@ -1,6 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 
 public class TouchHandler_1 : MonoBehaviour
 {
@@ -9,50 +13,78 @@ public class TouchHandler_1 : MonoBehaviour
 
     private float lastTapTime;
     private Vector2 lastTapPosition;
+    private Transform cositos;
+    private Vector2 INT;
+    private Vector2 ENDT;
+    [SerializeField]
+    private List<GameObject> array;
+
 
     void Update()
     {
-        // Verificar si hay toques en la pantalla
+
         if (Input.touchCount > 0)
         {
-            Touch touch = Input.GetTouch(0); // Solo consideramos el primer toque
+            Touch touch = Input.GetTouch(0);
 
-            // Verificar si es un toque que acaba de comenzar
-            if (touch.phase == TouchPhase.Began)
+            Vector2 tapPosition = Camera.main.ScreenToWorldPoint(touch.position);
+            transform.position = tapPosition;
+
+            if (touch.phase == UnityEngine.TouchPhase.Began)
             {
-                // Obtener la posición del toque
-                Vector2 tapPosition = Camera.main.ScreenToWorldPoint(touch.position);
+                INT = touch.position;
+                RaycastHit2D hit = Physics2D.Raycast(tapPosition, Vector2.zero);
 
-                // Verificar si es un double tap
-                if (Time.time - lastTapTime < 1.00f && (tapPosition - lastTapPosition).sqrMagnitude < 1.00f)
+                if (touch.tapCount == 1)
                 {
-                    // Lanzar un rayo desde la posición del toque
-                    RaycastHit2D hit = Physics2D.Raycast(tapPosition, Vector2.zero);
-
-                    // Verificar si el rayo intersecta con algún collider
                     if (hit.collider != null)
                     {
-                        // Eliminar el objeto intersectado
-                        Destroy(hit.collider.gameObject);
-                        Debug.Log("Se eliminó el objeto.");
+                        cositos = hit.collider.transform;
+                    }
+                    else
+                    {
+                        CrearFigura(tapPosition);
                     }
                 }
-                else
+                else if (touch.tapCount == 2 && hit.collider != null)
                 {
-                    // Si no es un double tap, crear una figura en esa posición
-                    CrearFigura(tapPosition);
+                    Debug.Log(hit.collider.gameObject);
+                    Destroy(hit.collider.gameObject);
                 }
+            }
 
-                // Actualizar el tiempo y la posición del último tap
-                lastTapTime = Time.time;
-                lastTapPosition = tapPosition;
+            if (touch.phase == UnityEngine.TouchPhase.Moved)
+            {
+                if (cositos != null)
+                {
+                    cositos.transform.position = tapPosition;
+                }
+            }
+            else if (touch.phase == UnityEngine.TouchPhase.Ended)
+            {
+                cositos = null;
+                ENDT = touch.position;
+                Vector2 swipeD = ENDT - INT;
+
+                float swipeM = swipeD.magnitude;
+                if (swipeM > 0.6f && array != null)
+                {
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        Destroy(array[i]);
+
+                    }
+                    array.Clear();
+                }
             }
         }
+
     }
 
     void CrearFigura(Vector2 posicion)
     {
         GameObject nuevaFigura = Instantiate(figuraPrefab, posicion, Quaternion.identity);
+        array.Add(nuevaFigura);
 
         SpriteRenderer spriteRenderer = nuevaFigura.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
